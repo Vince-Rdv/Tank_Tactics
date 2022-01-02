@@ -1,0 +1,14 @@
+Each player starts the game with five action coin. This coin can be used
+to walk it's range, shoot within it's range and add/remove a wall. the
+player starts with 1 walk range and 1 shoot range. 
+
+Each 4 hours every player gets one extra actoin coin. The player can log
+in at any time to make a move. 
+
+Each 24 hours 3 players get selected to be the jury, this jury is
+able to give boosts to a player. If 2 or 3 of those players vote on the
+same player, this player gets one extra coin per 4 hours for 24 hours.
+These players can not vote on themselves.
+
+The game only ends once only one player is left on the field. Stalemate
+are not possible.

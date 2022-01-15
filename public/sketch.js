@@ -12,10 +12,10 @@ var gameState = {}
 var gameStateDataReceived = false;
 
 socket.on('getGamestateResponse', (res) => {
+    gameState = res
     gameStateDataReceived = true;
-    gameState = res;
-    boardWidth = gameState.gameBoard.length;
-    boardHeight = gameState.gameBoard[0].length;
+    boardWidth = gameState.board.length;
+    boardHeight = gameState.board[0].length
 });
 
 var boardWidth = 0;
@@ -25,18 +25,23 @@ function draw() {
     background(51);
 
     if (gameStateDataReceived) {
+        //Draw board
         push();
-        translate(20, 20)
+        translate(40, 40)
         fill(80)
-        rect(0, 0, width - 40, height - 40)
+        rect(0, 0, 1000, 1000)
+        var temp = 1000 / boardWidth
         for (var x = 0; x < boardWidth; x++) {
-            line(Math.round(x * ((width - 40) / boardWidth)), 0, Math.round(x * ((width - 40) / boardWidth)), height - 40)
+            line(0, Math.floor(x*temp), 1000, Math.floor(x*temp))
+            line(Math.floor(x*temp), 0, Math.floor(x*temp), 1000)
         }
-        for (var y = 0; y < boardHeight; y++) {
-            line(0, Math.round(y * ((height - 40) / boardHeight)), width - 40, Math.round(y * ((height - 40) / boardHeight)))
+        
+        //Draw players
+        for (var x = 0; x < gameState.players.length; x++) {
+            fill(255)
+            rect(gameState.players[x].x*temp,gameState.players[x].y*temp,temp, temp)
         }
-
-        // line(Math.round(y * ((height - 40) / boardHeight)), 0, Math.round(y * ((height - 40) / boardHeight)), height - 40)
+        
         pop();
 
     } else {

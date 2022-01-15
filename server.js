@@ -1,6 +1,5 @@
-var config = {
-    "port": 3000
-};
+const serverConfig = require('./config')
+
 
 // Random libraries
 var colors = require('colors'); // Colored console output (colors is not used, require extends the string Prototype)
@@ -76,49 +75,44 @@ function vLog(type, message) {
 
 }
 
-vLog("log", "Tank Tactics server starting")
+vLog("info", "Tank Tactics server starting")
 // Express Setup
 const express = require('express');
 const app = express();
 const http = require('http');
-vLog("log", "Express server booted up")
+vLog("log", "Express server booted up");
 
 // Socket.io Setup
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
-vLog("log", "Socket.io server booted up")
+vLog("log", "Socket.io server booted up"); 
 
 // Discord.js Setup
-var token = "NDM3NjY2MjExMTQ5NTEyNzE0.WtzGbA.gLgTfL5XGtF8biYI6V-9GS7ntKM"
-
 const { Client, Intents } = require('discord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES] }); //create new client
 
 app.use(express.static('public'))
-vLog("log", "Changed Express to serve in static mode")
+vLog("log", "Changed Express to serve in static mode");
 
 // Socket.io Run
 io.on('connection', (socket) => {
     vLog("log", "A new user connected through socket.io")
 
     socket.on("getGamestate", (res) => { // Board information
-        vLog("player", "Player " + playerNames[res.id] + " has requested the game state");
-        var gameState = {
-            "players": playerList,
-            "gameBoard": gameBoard
-        }
+        // vLog("player", "Player " + playerList[res.id].name + " has requested the game state");
+        // vLog("player", "Player " + playerList[0].name + " has requested the game state"); //TODO Remove on release
         socket.emit("getGamestateResponse", gameState)
     });
 });
 // Express Run
-server.listen(config.port, () => {
-    vLog("info", "Express listening on port " + config.port)
+server.listen(serverConfig.port, () => {
+    vLog("log", "Express listening on port " + serverConfig.port);
 });
 
 // Discord.js Run
 client.once('ready', () => {
-    vLog("info", "Discord logged in")
+    vLog("log", "Discord logged in");
 });
 
 client.on('messageCreate', function(msg){
@@ -129,77 +123,36 @@ client.on('messageCreate', function(msg){
     }
 });
 
-client.login(token)
+client.login(serverConfig.discordToken)
 
+var gameConfig = {
+    "boardWidth": 30,
+    "boardHeight": 30
+}
+vLog("info", "Setting up gamestates")
+vLog("info", "Set up board with a size of " + gameConfig.boardWidth + " by " + gameConfig.boardHeight)
 
-
-var playerNames = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet", "Kilo", "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-Ray", "Yankee", "Zulu"]
-
-var gameBoard = [];
-var playerList = [];
-
-/**
- * This function boots up all functions to setup before the game 
- * @method
- * @param {number} boardWidth Board width in tiles
- * @param {number} boardHeight Board height in tiles
- * @param {number} players Amount of players in the game
- * @param {*} options Other options 
- */
-function initGame(boardWidth = 10, boardHeight = 10, players = 4, options = {}) {
-    vLog("info", "Board creation started")
-    gameBoard = createBoard(boardWidth, boardHeight)
+var gameState = {
+    "board": [],
+    "players": [],
+    "license": "",
+    "setup": new Date()
+}
+for(var x = 0; x < gameConfig.boardWidth; x++){
+    gameState.board[x] = []
+    for(var y = 0; y < gameConfig.boardHeight; y++){
+        gameState.board[x][y] = 0
+    }
 }
 
-/**
- * Create the board array
- * @method
- * @param {number} boardWidth Board width in tiles
- * @param {number} boardHeight Board height in tiles
- * @returns Array of board
- */
-function createBoard(boardWidth, boardHeight) {
-    var temp = [];
-    for (var x = 0; x < boardWidth; x++) {
-        temp[x] = []
-        for (var y = 0; y < boardHeight; y++) {
-            temp[x][y] = Math.ceil(Math.random() * 50)
-        }
-    }
-    return temp
-}
+gameState.players.push(new Player(0, "TankTest1", 10, 10));
+gameState.players.push(new Player(0, "TankTest2", 20, 10));
+gameState.players.push(new Player(0, "TankTest3", 10, 20));
+gameState.players.push(new Player(0, "TankTest4", 20, 20));
 
-/**
- * Create a player object
- * @method
- * @param {number} id 
- * @param {string} name 
- * @param {number} x 
- * @param {number} y 
- * @param {*} options 
- * @returns Player object
- */
-function createPlayer(id, name, x = 0, y = 0, options = {}) {
-    var temp = {
-        x: x,
-        y: y,
-        id: id,
-        health: 3,
-        actionPoints: 3,
-        shootRange: 3,
-        options: options
-    }
-    return temp
-}
-var tempH = 20;
-var tempW = Math.floor(tempH * 1.80769230769)
-initGame(tempW, tempH, 10);
-
-function createID(){
-    var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-    var randomID = "";
-    for(var x = 0; x < 64; x++){
-        randomID += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return randomID
+function Player(id,playerName,posX,posY){
+    this.x = posX;
+    this.y = posY;
+    this.name = playerName;
+    this.id = id;
 }
